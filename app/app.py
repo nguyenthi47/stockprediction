@@ -7,11 +7,11 @@ app = Flask(__name__)
 def predict():
 	if request.method == 'POST':
 		company = request.get_json()
-		print(company)
+		# print(company)
 		pred = train(company)
-		result = pred[0]
-		print(result)
-		return jsonify({'prediction':str(result)})
+		# result = pred[0]
+		# print(pred)
+		return jsonify({'prediction':str(pred)})
 	return 'OK'
 
 if __name__ == "__main__":

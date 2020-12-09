@@ -32,7 +32,8 @@ def fetch_data():
 	if not os.path.exists('stock_details'):
 		os.makedirs('stock_details')
 	start = dt.datetime(2010,1,1)
-	end = dt.datetime(2020,11,11)
+	today = date.today() 
+	end = dt.datetime(today.year,today.month,today.day)
 	ind = pd.read_csv('industries.csv')
 	count = 0
 	for ticker in tickers:

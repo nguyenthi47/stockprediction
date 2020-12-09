@@ -21,10 +21,10 @@ def split_data(df, numDay):
 
 	# last data serve as label
 	x_train = data[:train_size, :-1, :]
-	y_train = data[:train_size, -1:, :]
+	y_train = data[:train_size, -1, :]
 
 	x_test = data[train_size:, :-1, :]
-	y_test = data[train_size:, -1:, :]
+	y_test = data[train_size:, -1, :]
 
 	return x_train,y_train,x_test,y_test
 
@@ -51,13 +51,13 @@ def train(company):
 	hidden_dim = 32
 	num_layers = 2
 	output_dim = 1
-	num_epochs = 50
+	num_epochs = 100
 
 	model = LSTM(input_size=input_dim, hidden_size=hidden_dim, num_layers=num_layers, output_dim=output_dim)
-	criterion = torch.nn.MSELoss()
-	optimizer = torch.optim.Adam(model.parameters())
-
+	criterion = torch.nn.MSELoss(reduction='mean')
+	optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 	hist = np.zeros(num_epochs)
+
 	for epoch in range(num_epochs):
 		y_train_pred = model(x_train)
 		loss = criterion(y_train_pred, y_train)
@@ -68,16 +68,30 @@ def train(company):
 		optimizer.step()
 		
 	# set dropout and batch normalization layers
-	model.eval()
+	# model.eval()
 	# torch.save(model.state_dict(),'./saved_model/'+company+'.pth')
 	y_test_pred = model(x_test)
 	# print(y_test.shape)
 	y_test_pred = scaler.inverse_transform(y_test_pred.detach().numpy())
-	y_test = scaler.inverse_transform(y_test[:,-1,:].detach().numpy())
+	y_test = scaler.inverse_transform(y_test.detach().numpy())
+
+	y_test_pred = pd.DataFrame(scaler.inverse_transform(y_train_pred.detach().numpy()))
+	y_test = pd.DataFrame(scaler.inverse_transform(y_train.detach().numpy()))	
+
+	# sns.set_style("darkgrid")
+	fig = plt.figure()
+	ax = sns.lineplot(x = y_test_pred.index, y = y_test_pred[0], label="Predict", color='blue')
+	ax = sns.lineplot(x = y_test.index, y = y_test[0], label="Actual value", color='red')
+	ax.set_title(company+' stock price', size = 14, fontweight='bold')
+	ax.set_xlabel("Days", size = 14)
+	ax.set_ylabel("Price", size = 14)
+	ax.set_xticklabels('', size=10)
+	plt.show()
 	# print(y_test_pred.shape)
 	# print(y_test_pred)
-	# print(y_test_pred[-1,:])
-	return y_test_pred[-1,:]
+	# print(y_test_pred.shape)
+	# print(y_test_pred.iloc[-1][0])
+	return y_test_pred.iloc[-1][0]
 	
 if __name__ == "__main__":
-	train('AMZN')
+	train('ALLE')
